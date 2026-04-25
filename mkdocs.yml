@@ -1,0 +1,46 @@
+site_name: Event Game Framework
+site_description: Documentation for the Event Game Framework
+site_url: https://fuhdan.github.io/event-game/
+repo_url: https://github.com/fuhdan/event-game
+repo_name: fuhdan/event-game
+
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - content.code.copy
+  palette:
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+nav:
+  - Home: index.md
+  - User Guide:
+    - userguide/index.md
+  - Admin Guide:
+    - adminguide/index.md
+  - Developer Guide:
+    - developerguide/index.md
+  - Community:
+    - community/theme-guide.md
+    - community/event-guide.md
+    - community/lang-guide.md
+  - Architecture:
+    - architecture/001-postgresql-over-sqlite.md
+
+markdown_extensions:
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - admonition
+  - tables

@@ -1,0 +1,70 @@
+name: Community Contribution Validator
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "themes/**"
+      - "langs/**"
+      - "events/**"
+
+jobs:
+  detect-type:
+    name: Detect Contribution Type
+    runs-on: ubuntu-latest
+    outputs:
+      has_theme: ${{ steps.detect.outputs.has_theme }}
+      has_lang: ${{ steps.detect.outputs.has_lang }}
+      has_event: ${{ steps.detect.outputs.has_event }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: detect
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          CHANGED=$(git diff --name-only "$BASE_SHA" HEAD)
+          echo "has_theme=$(echo "$CHANGED" | grep -q '^themes/' && echo true || echo false)" >> $GITHUB_OUTPUT
+          echo "has_lang=$(echo "$CHANGED" | grep -q '^langs/' && echo true || echo false)" >> $GITHUB_OUTPUT
+          echo "has_event=$(echo "$CHANGED" | grep -q '^events/' && echo true || echo false)" >> $GITHUB_OUTPUT
+
+  validate-theme:
+    name: Validate Theme
+    needs: detect-type
+    if: needs.detect-type.outputs.has_theme == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate theme structure and CSS variables
+        run: python scripts/validate_theme.py
+
+  validate-lang:
+    name: Validate Language Pack
+    needs: detect-type
+    if: needs.detect-type.outputs.has_lang == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate language pack completeness
+        run: python scripts/validate_lang.py
+
+  validate-event:
+    name: Validate Event
+    needs: detect-type
+    if: needs.detect-type.outputs.has_event == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pyyaml
+      - name: Validate event YAML schema
+        run: python scripts/validate_event.py
