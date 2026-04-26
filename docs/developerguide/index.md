@@ -10,6 +10,6 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) and the `.claude/` directory for all d
 
 The framework consists of:
 - **Backend:** FastAPI application with PostgreSQL + Redis
-- **Frontend:** React 18 with Tailwind CSS and shadcn/ui
+- **Frontend:** React 19 with Tailwind CSS and shadcn/ui
 - **AI layer:** Pluggable AI provider (Ollama / Claude / OpenAI)
 - **Deployment:** Docker Swarm with Traefik reverse proxy
