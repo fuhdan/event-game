@@ -20,14 +20,6 @@ providers:
   file:
     filename: /etc/traefik/dynamic.yml
 
-certificatesResolvers:
-  letsencrypt:
-    acme:
-      email: admin@yourdomain.com
-      storage: /letsencrypt/acme.json
-      httpChallenge:
-        entryPoint: web
-
 log:
   level: INFO
 
