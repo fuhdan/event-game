@@ -52,7 +52,7 @@ jobs:
         env:
           SWARM_HOST: ${{ secrets.SWARM_HOST }}
         run: |
-          ssh -i ~/.ssh/swarm_key pipeline@$SWARM_HOST "sudo mkdir -p /opt/event-game/traefik && sudo chown -R pipeline:"domain users" /opt/event-game"
+          ssh -i ~/.ssh/swarm_key pipeline@$SWARM_HOST "sudo mkdir -p /opt/event-game/traefik && sudo chown -R 'pipeline:domain users' /opt/event-game"
           scp -i ~/.ssh/swarm_key deploy/docker-stack.prod.yml \
             pipeline@$SWARM_HOST:/opt/event-game/docker-stack.prod.yml
           scp -i ~/.ssh/swarm_key deploy/traefik/traefik.yml deploy/traefik/dynamic.yml \
