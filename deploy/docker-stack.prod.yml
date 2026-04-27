@@ -52,7 +52,7 @@ services:
       labels:
         - "traefik.enable=true"
         - "traefik.docker.network=traefik_traefik-public"
-        - "traefik.http.routers.api.rule=Host(`${DOMAIN}`) && PathPrefix(`/api`)"
+        - "traefik.http.routers.api.rule=Host(`${DOMAIN}`) && (PathPrefix(`/api`) || Path(`/health`))"
         - "traefik.http.routers.api.entrypoints=websecure"
         - "traefik.http.routers.api.tls=true"
         - "traefik.http.services.api.loadbalancer.server.port=8000"
