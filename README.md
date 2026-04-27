@@ -33,3 +33,70 @@ Open http://localhost:3000
 
 ## License
 MIT
+
+
+
+
+
+
+
+docker stack deploy --compose-file docker-stack-traefik.yml traefik
+
+
+
+networks:
+  traefik-public:
+  driver: overlay
+  attachable: true
+
+services:
+  traefik:
+    image: traefik:latest
+    command:
+      - --api=true
+      - --providers.swarm=true
+      - --providers.swarm.endpoint=unix:///var/run/docker.sock
+      - --providers.swarm.exposedbydefault=false
+      - --providers.swarm.network=traefik_traefik-public
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entryPoint.to=websecure
+      - --entrypoints.web.http.redirections.entryPoint.scheme=https
+      - --entrypoints.websecure.address=:443
+      - --providers.file.filename=/etc/traefik/dynamic.yml
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - traefik-public
+    secrets:
+      - tls_cert
+      - tls_key
+    configs:
+      - source: traefik_dynamic
+        target: /etc/traefik/dynamic.yml
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role==manager
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=traefik_traefik-public"
+        - "traefik.http.routers.dashboard.rule=Host(`traefik.danielf.local`)"
+        - "traefik.http.routers.dashboard.entrypoints=websecure"
+        - "traefik.http.routers.dashboard.tls=true"
+        - "traefik.http.routers.dashboard.service=api@internal"
+        - "traefik.http.services.dashboard.loadbalancer.server.port=8080"
+
+secrets:
+  tls_cert:
+    external: true
+  tls_key:
+    external: true
+
+configs:
+  traefik_dynamic:
+    file: ./dynamic.yml
