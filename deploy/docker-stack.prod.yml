@@ -1,25 +1,6 @@
 version: "3.9"
 
 services:
-  traefik:
-    image: traefik:v3.0
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    configs:
-      - source: traefik_config
-        target: /etc/traefik/traefik.yml
-      - source: traefik_dynamic
-        target: /etc/traefik/dynamic.yml
-    secrets:
-      - tls_cert
-      - tls_key
-    deploy:
-      placement:
-        constraints: [node.role == manager]
-
   postgres:
     image: pgvector/pgvector:pg16
     environment:
@@ -31,6 +12,8 @@ services:
     secrets:
       - postgres_user
       - postgres_password
+    networks:
+      - internal
     deploy:
       placement:
         constraints: [node.labels.storage == true]
@@ -40,6 +23,8 @@ services:
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes
+    networks:
+      - internal
 
   api:
     image: ghcr.io/${IMAGE_OWNER}/event-game-backend:${IMAGE_TAG}
@@ -53,6 +38,9 @@ services:
       - jwt_secret
       - postgres_user
       - postgres_password
+    networks:
+      - internal
+      - traefik-public
     deploy:
       replicas: 2
       update_config:
@@ -63,6 +51,7 @@ services:
         condition: on-failure
       labels:
         - "traefik.enable=true"
+        - "traefik.docker.network=traefik_traefik-public"
         - "traefik.http.routers.api.rule=Host(`${DOMAIN}`) && PathPrefix(`/api`)"
         - "traefik.http.routers.api.entrypoints=websecure"
         - "traefik.http.routers.api.tls=true"
@@ -70,6 +59,9 @@ services:
 
   frontend:
     image: ghcr.io/${IMAGE_OWNER}/event-game-frontend:${IMAGE_TAG}
+    networks:
+      - internal
+      - traefik-public
     deploy:
       replicas: 2
       update_config:
@@ -78,6 +70,7 @@ services:
         order: start-first
       labels:
         - "traefik.enable=true"
+        - "traefik.docker.network=traefik_traefik-public"
         - "traefik.http.routers.frontend.rule=Host(`${DOMAIN}`)"
         - "traefik.http.routers.frontend.entrypoints=websecure"
         - "traefik.http.routers.frontend.tls=true"
@@ -90,16 +83,13 @@ secrets:
     external: true
   postgres_password:
     external: true
-  tls_cert:
-    external: true
-  tls_key:
-    external: true
 
-configs:
-  traefik_config:
-    file: ./traefik/traefik.yml
-  traefik_dynamic:
-    file: ./traefik/dynamic.yml
+networks:
+  internal:
+    driver: overlay
+  traefik-public:
+    external: true
+    name: traefik_traefik-public
 
 volumes:
   postgres_data:
